@@ -10,8 +10,8 @@ from typing import Optional
 from unittest.mock import patch
 
 from comfy.ldm.flux.layers import timestep_embedding, apply_mod
-from comfy.ldm.lightricks.model import precompute_freqs_cis
-from comfy.ldm.lightricks.symmetric_patchifier import latent_to_pixel_coords
+#from comfy.ldm.lightricks.model import precompute_freqs_cis
+#from comfy.ldm.lightricks.symmetric_patchifier import latent_to_pixel_coords
 from comfy.ldm.wan.model import sinusoidal_embedding_1d
 
 
@@ -1087,12 +1087,12 @@ class MagCache:
         return {
             "required": {
                 "model": ("MODEL", {"tooltip": "The diffusion model the MagCache will be applied to."}),
-                "model_type": (["flux", "flux_kontext", "chroma", "qwen_image", "hunyuan_video", "hunyuan_video1.5", "wan2.1_t2v_1.3B", "wan2.1_t2v_14B", "wan2.1_i2v_480p_14B", "wan2.1_i2v_720p_14B", "wan2.1_vace_1.3B", "wan2.1_vace_14B"], {"default": "wan2.1_t2v_1.3B", "tooltip": "Supported diffusion model."}),
-                "magcache_thresh": ("FLOAT", {"default": 0.06, "min": 0.0, "max": 0.3, "step": 0.01, "tooltip": "How strongly to cache the output of diffusion model. This value must be non-negative."}),
-                "retention_ratio": ("FLOAT", {"default": 0.2, "min": 0.1, "max": 0.3, "step": 0.01, "tooltip": "The start percentage of the steps that will apply MagCache."}),
+                "model_type": (["flux", "flux_kontext", "chroma", "qwen_image", "hunyuan_video", "hunyuan_video1.5", "hunyuan_video1.5_40steps", "wan2.1_t2v_1.3B", "wan2.1_t2v_14B", "wan2.1_i2v_480p_14B", "wan2.1_i2v_720p_14B", "wan2.1_vace_1.3B", "wan2.2_t2v_14B", "wan2.1_vace_14B", "wan2.2_ti2v_5B", "wan2.2_i2v_14B"], {"default": "wan2.1_t2v_1.3B", "tooltip": "Supported diffusion model."}),
+                "magcache_thresh": ("FLOAT", {"default": 0.02, "min": 0.0, "max": 0.3, "step": 0.001, "tooltip": "How strongly to cache the output of diffusion model. This value must be non-negative."}),
+                #"retention_ratio": ("FLOAT", {"default": 0.2, "min": 0.1, "max": 0.3, "step": 0.01, "tooltip": "The start percentage of the steps that will apply MagCache."}),
                 "magcache_K": ("INT", {"default": 2, "min": 0, "max": 6, "step": 1, "tooltip": "The maxium skip steps of MagCache."}),
-                "start_step": ("INT", {"default": 0, "min": 0, "max": 100, "step": 1, "tooltip": "The maxium skip steps of MagCache."}),
-                "end_step": ("INT", {"default": -1, "min": -100, "max": 100, "step": 1, "tooltip": "The maxium skip steps of MagCache."}),
+                "start_step": ("INT", {"default": 1, "min": 0, "max": 9999, "step": 1, "tooltip": "Step to start applying MagCache."}),
+                "end_step": ("INT", {"default": -1, "min": -1, "max": 9999, "step": 1, "tooltip": "Step to end applying MagCache."}),
             }
         }
     
@@ -1101,8 +1101,10 @@ class MagCache:
     FUNCTION = "apply_magcache"
     CATEGORY = "MagCache"
     TITLE = "MagCache"
+    DESCRIPTION = "MagCache, source https://github.com/Zehong-Ma/MagCache"
     
-    def apply_magcache(self, model, model_type: str, magcache_thresh: float, retention_ratio: float, magcache_K: int, start_step: int, end_step:int):
+    #def apply_magcache(self, model, model_type: str, magcache_thresh: float, retention_ratio: float, magcache_K: int, start_step: int, end_step:int):
+    def apply_magcache(self, model, model_type: str, magcache_thresh: float, magcache_K: int, start_step: int, end_step:int):
         if magcache_thresh == 0:
             return (model,)
 
@@ -1110,7 +1112,7 @@ class MagCache:
         if 'transformer_options' not in new_model.model_options:
             new_model.model_options['transformer_options'] = {}
         new_model.model_options["transformer_options"]["magcache_thresh"] = magcache_thresh
-        new_model.model_options["transformer_options"]["retention_ratio"] = retention_ratio
+        #new_model.model_options["transformer_options"]["retention_ratio"] = retention_ratio
         mag_ratios = SUPPORTED_MODELS_MAG_RATIOS[model_type]
         mag_ratios_tensor = torch.from_numpy(mag_ratios).float()
         new_model.model_options["transformer_options"]["mag_ratios"] = mag_ratios_tensor
@@ -1208,7 +1210,8 @@ class MagCache:
             end_step = c["transformer_options"]["end_step"]
             if end_step<0:
                 end_step = total_infer_steps + end_step
-            if  current_step_index>=int(total_infer_steps*c["transformer_options"]["retention_ratio"]) and (start_step<=current_step_index<=end_step): # start index of magcache
+            #if  current_step_index>=int(total_infer_steps*c["transformer_options"]["retention_ratio"]) and (start_step<=current_step_index<=end_step): # start index of magcache
+            if start_step<=current_step_index<=end_step: # start index of magcache
                 c["transformer_options"]["enable_magcache"] = True
             else:
                 c["transformer_options"]["enable_magcache"] = False
