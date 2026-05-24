@@ -7,6 +7,7 @@ MagCache has now been integrated into ComfyUI and is compatible with the ComfyUI
 
 ## 🔥 Latest News 
 - **If you like our project, please give us a star ⭐ on GitHub for the latest update.**
+- [2026/5/24] Support comfyui_v0.22+, so that the menu can be displayed normally and work
 - [2025/11/23] 🔥 Support [Qwen-Image](https://github.com/QwenLM/Qwen-Image) officially, achieving a 1.75x acceleration.
 - [2025/11/22] 🔥 Support [HunyuanVideo-1.5](https://github.com/Tencent-Hunyuan/HunyuanVideo-1.5) officially, achieving a 1.7x acceleration.
 - [2025/7/2] 🔥 Support [Wan2.1-VACE-14B](https://github.com/ali-vilab/VACE) officially. Thanks @[Qentah](https://github.com/Qentah).
